@@ -1,0 +1,14 @@
+{
+  "name": "Network Health Green",
+  "dataColors": ["#1E7B4F", "#43A047", "#81C784", "#00796B", "#A5D6A7", "#E67E22", "#C0392B", "#90A4AE"],
+  "background": "#FFFFFF",
+  "foreground": "#1B3A2B",
+  "tableAccent": "#1E7B4F",
+  "good": "#2E7D32",
+  "neutral": "#E67E22",
+  "bad": "#C0392B",
+  "visualStyles": {
+    "page": { "*": { "background": [{ "color": { "solid": { "color": "#FFFFFF" } }, "transparency": 0 }] } },
+    "*": { "*": { "border": [{ "show": true, "color": { "solid": { "color": "#C8E6C9" } }, "radius": 8 }] } }
+  }
+}

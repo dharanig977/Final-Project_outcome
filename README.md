@@ -7,6 +7,14 @@ A portfolio project that builds a complete supply chain analytics stack, from th
 - **[Open the presentation (PDF)](presentation/Supply_Chain_Analytics_End_to_End.pdf)**: 18 slides in two parts: how the project was built, and the dashboard story.
 - **[Speaker notes](presentation/SPEAKER_NOTES.md)**: the talk track for every slide.
 
+## Power BI dashboard
+
+- **[Dashboard pages (PDF)](dashboard/Dashboard.pdf)**: the five report pages exported from Power BI.
+- **[Data model (PDF)](dashboard/Data_modelling.pdf)**: tables and relationships in the Power BI model.
+- **[Power BI file (.pbix)](powerbi/NetworkHealth_R1.pbix)**: download and open in Power BI Desktop. It holds the imported demo data; database passwords are not stored in the file.
+- **[DAX measures](powerbi/DAX_measures.txt)**: all measures, ready to paste into DAX query view.
+- **Themes**: [green theme (used)](powerbi/network_health_theme_green.json) and [original theme](powerbi/network_health_theme.json).
+
 ## What the project does
 
 ```

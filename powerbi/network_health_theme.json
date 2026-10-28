@@ -1,0 +1,14 @@
+{
+  "name": "Network Health",
+  "dataColors": ["#1F4E79", "#2E86C1", "#27AE60", "#E67E22", "#C0392B", "#8E44AD", "#95A5A6", "#16A085"],
+  "background": "#FFFFFF",
+  "foreground": "#1B2631",
+  "tableAccent": "#1F4E79",
+  "good": "#27AE60",
+  "neutral": "#E67E22",
+  "bad": "#C0392B",
+  "visualStyles": {
+    "page": { "*": { "background": [{ "color": { "solid": { "color": "#F4F6F8" } }, "transparency": 0 }] } },
+    "*": { "*": { "border": [{ "show": true, "color": { "solid": { "color": "#E5E8EB" } }, "radius": 8 }] } }
+  }
+}

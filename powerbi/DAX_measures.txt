@@ -1,0 +1,116 @@
+// Welcome to DAX query view! Learn more about DAX queries at https://aka.ms/dax-queries.
+// Right-click on tables, columns, or measures in the data pane to access quick queries, or ask Copilot for help writing DAX.
+// Distribution Network Health: copy-paste version (no renaming, no extra tables).
+// 1. Power BI Desktop > left panel > DAX query view (4th icon).
+// 2. Select all in the editor, paste this whole file, click Run.
+// 3. Click "Update model with changes" at the top. Done: all measures appear
+//    under the table "rpt_inventory kpi_inventory_health" in the Data pane.
+
+DEFINE
+    // ---------- 1. Inventory ----------
+    MEASURE 'rpt_inventory kpi_inventory_health'[Inventory Value] = SUM ( 'rpt_inventory kpi_inventory_health'[inventory_value] )
+    MEASURE 'rpt_inventory kpi_inventory_health'[On Hand Units] = SUM ( 'rpt_inventory kpi_inventory_health'[on_hand_qty] )
+    MEASURE 'rpt_inventory kpi_inventory_health'[Available Units] = SUM ( 'rpt_inventory kpi_inventory_health'[available_qty] )
+    MEASURE 'rpt_inventory kpi_inventory_health'[Reserved Units] = SUM ( 'rpt_inventory kpi_inventory_health'[reserved_qty] )
+    MEASURE 'rpt_inventory kpi_inventory_health'[Inbound Units] = SUM ( 'rpt_inventory kpi_inventory_health'[inbound_qty] )
+    MEASURE 'rpt_inventory kpi_inventory_health'[Avg Daily Demand] = SUM ( 'rpt_inventory kpi_inventory_health'[avg_daily_demand] )
+    MEASURE 'rpt_inventory kpi_inventory_health'[Days of Supply] = DIVIDE ( [Available Units], [Avg Daily Demand] )
+    MEASURE 'rpt_inventory kpi_inventory_health'[Days of Supply incl Inbound] = DIVIDE ( [Available Units] + [Inbound Units], [Avg Daily Demand] )
+    MEASURE 'rpt_inventory kpi_inventory_health'[SKU Locations] = COUNTROWS ( 'rpt_inventory kpi_inventory_health' )
+    MEASURE 'rpt_inventory kpi_inventory_health'[Stockouts] = CALCULATE ( [SKU Locations], 'rpt_inventory kpi_inventory_health'[stock_status] = "Stockout" )
+    MEASURE 'rpt_inventory kpi_inventory_health'[Reorder Now] = CALCULATE ( [SKU Locations], 'rpt_inventory kpi_inventory_health'[stock_status] = "Reorder now" )
+    MEASURE 'rpt_inventory kpi_inventory_health'[Excess Items] = CALCULATE ( [SKU Locations], 'rpt_inventory kpi_inventory_health'[stock_status] = "Excess" )
+    MEASURE 'rpt_inventory kpi_inventory_health'[No Recent Demand] = CALCULATE ( [SKU Locations], 'rpt_inventory kpi_inventory_health'[stock_status] = "No recent demand" )
+    MEASURE 'rpt_inventory kpi_inventory_health'[At Risk Items] = [Stockouts] + [Reorder Now]
+    MEASURE 'rpt_inventory kpi_inventory_health'[Healthy %] = DIVIDE ( CALCULATE ( [SKU Locations], 'rpt_inventory kpi_inventory_health'[stock_status] = "Healthy" ), [SKU Locations] )
+    MEASURE 'rpt_inventory kpi_inventory_health'[Excess Value] =
+        SUMX (
+            FILTER ( 'rpt_inventory kpi_inventory_health', 'rpt_inventory kpi_inventory_health'[stock_status] = "Excess" ),
+            MAX ( 0, 'rpt_inventory kpi_inventory_health'[available_qty] - 'rpt_inventory kpi_inventory_health'[avg_daily_demand] * 90 )
+                * LOOKUPVALUE ( 'rpt_inventory dim_product'[unit_cost], 'rpt_inventory dim_product'[product_key], 'rpt_inventory kpi_inventory_health'[product_key] )
+        )
+    MEASURE 'rpt_inventory kpi_inventory_health'[Suggested Order Units] = SUM ( 'rpt_inventory kpi_inventory_health'[suggested_order_qty] )
+    MEASURE 'rpt_inventory kpi_inventory_health'[Suggested Order Value] =
+        SUMX ( 'rpt_inventory kpi_inventory_health', 'rpt_inventory kpi_inventory_health'[suggested_order_qty] * LOOKUPVALUE ( 'rpt_inventory dim_product'[unit_cost], 'rpt_inventory dim_product'[product_key], 'rpt_inventory kpi_inventory_health'[product_key] ) )
+    MEASURE 'rpt_inventory kpi_inventory_health'[Inventory Value Over Time] = SUM ( 'rpt_inventory fact_inventory'[inventory_value] )
+
+    // ---------- 2. Customer service ----------
+    MEASURE 'rpt_inventory kpi_inventory_health'[Orders] = SUM ( 'rpt_inventory kpi_fill_rate'[order_count] )
+    MEASURE 'rpt_inventory kpi_inventory_health'[Orders Shipped in Full] = SUM ( 'rpt_inventory kpi_fill_rate'[orders_shipped_in_full] )
+    MEASURE 'rpt_inventory kpi_inventory_health'[Order Fill Rate] = DIVIDE ( [Orders Shipped in Full], [Orders] )
+    MEASURE 'rpt_inventory kpi_inventory_health'[Ordered Units] = SUM ( 'rpt_inventory kpi_fill_rate'[ordered_qty] )
+    MEASURE 'rpt_inventory kpi_inventory_health'[Shipped Units] = SUM ( 'rpt_inventory kpi_fill_rate'[shipped_qty] )
+    MEASURE 'rpt_inventory kpi_inventory_health'[Open Order Units] = SUM ( 'rpt_inventory kpi_fill_rate'[open_qty] )
+    MEASURE 'rpt_inventory kpi_inventory_health'[Unit Fill Rate] = DIVIDE ( [Shipped Units], [Ordered Units] )
+    MEASURE 'rpt_inventory kpi_inventory_health'[Fill Rate Target] = 0.98
+    MEASURE 'rpt_inventory kpi_inventory_health'[Fill Rate Gap] = [Order Fill Rate] - [Fill Rate Target]
+    MEASURE 'rpt_inventory kpi_inventory_health'[Orders Not in Full] = [Orders] - [Orders Shipped in Full]
+
+    // ---------- 3. Suppliers and purchase orders ----------
+    MEASURE 'rpt_inventory kpi_inventory_health'[POs] = COUNTROWS ( 'rpt_inventory fact_purchase_orders' )
+    MEASURE 'rpt_inventory kpi_inventory_health'[PO Value] = SUM ( 'rpt_inventory fact_purchase_orders'[est_order_value] )
+    MEASURE 'rpt_inventory kpi_inventory_health'[POs Received On Time] = CALCULATE ( [POs], 'rpt_inventory fact_purchase_orders'[late_status] = "Received on time" )
+    MEASURE 'rpt_inventory kpi_inventory_health'[POs Received Late] = CALCULATE ( [POs], 'rpt_inventory fact_purchase_orders'[late_status] = "Received late" )
+    MEASURE 'rpt_inventory kpi_inventory_health'[POs Overdue] = CALCULATE ( [POs], 'rpt_inventory fact_purchase_orders'[late_status] = "Overdue" )
+    MEASURE 'rpt_inventory kpi_inventory_health'[On Time Rate] = DIVIDE ( [POs Received On Time], [POs Received On Time] + [POs Received Late] )
+    MEASURE 'rpt_inventory kpi_inventory_health'[Avg Days Late] =
+        CALCULATE (
+            AVERAGE ( 'rpt_inventory fact_purchase_orders'[days_late] ),
+            'rpt_inventory fact_purchase_orders'[late_status] IN { "Received late", "Overdue" }
+        )
+    MEASURE 'rpt_inventory kpi_inventory_health'[Overdue Units] = CALCULATE ( SUM ( 'rpt_inventory fact_purchase_orders'[remaining_qty] ), 'rpt_inventory fact_purchase_orders'[late_status] = "Overdue" )
+    MEASURE 'rpt_inventory kpi_inventory_health'[Open PO Units] = SUM ( 'rpt_inventory fact_purchase_orders'[remaining_qty] )
+    MEASURE 'rpt_inventory kpi_inventory_health'[Open PO Value] =
+        SUMX ( 'rpt_inventory fact_purchase_orders', 'rpt_inventory fact_purchase_orders'[remaining_qty] * LOOKUPVALUE ( 'rpt_inventory dim_product'[unit_cost], 'rpt_inventory dim_product'[product_key], 'rpt_inventory fact_purchase_orders'[product_key] ) )
+    MEASURE 'rpt_inventory kpi_inventory_health'[Exception POs] = CALCULATE ( [POs], 'rpt_inventory fact_purchase_orders'[has_exception] = TRUE () )
+    MEASURE 'rpt_inventory kpi_inventory_health'[Exception Rate] = DIVIDE ( [Exception POs], [POs] )
+    MEASURE 'rpt_inventory kpi_inventory_health'[Supplier Lead Time (days)] = AVERAGE ( 'rpt_inventory dim_supplier'[standard_lead_days] )
+    MEASURE 'rpt_inventory kpi_inventory_health'[Supplier Risk Rank] = RANKX ( ALL ( 'rpt_inventory kpi_supplier_scorecard'[supplier_name] ), CALCULATE ( SUM ( 'rpt_inventory kpi_supplier_scorecard'[exception_po_count] ) ), , DESC, DENSE )
+
+    // ---------- 4. Root cause ----------
+    MEASURE 'rpt_inventory kpi_inventory_health'[Exception Occurrences] = SUM ( 'rpt_inventory kpi_po_exception_reasons'[po_count] )
+    MEASURE 'rpt_inventory kpi_inventory_health'[Share of Exceptions] =
+        DIVIDE (
+            [Exception Occurrences],
+            CALCULATE ( [Exception Occurrences], ALL ( 'rpt_inventory kpi_po_exception_reasons'[exception_reason] ) )
+        )
+    MEASURE 'rpt_inventory kpi_inventory_health'[Value at Risk from Exceptions] = SUM ( 'rpt_inventory kpi_po_exception_reasons'[est_order_value] )
+
+    // ---------- 5. Storytelling helpers ----------
+    MEASURE 'rpt_inventory kpi_inventory_health'[Data As Of] = "Data as of " & FORMAT ( MAX ( 'rpt_inventory kpi_inventory_health'[snapshot_at] ), "d mmm yyyy" )
+    MEASURE 'rpt_inventory kpi_inventory_health'[Headline] =
+        "Fill rate " & FORMAT ( [Order Fill Rate], "0.0%" )
+            & "  |  " & [At Risk Items] & " SKU-locations at risk"
+            & "  |  Supplier on-time " & FORMAT ( [On Time Rate], "0%" )
+    MEASURE 'rpt_inventory kpi_inventory_health'[Status Color] =
+        SWITCH (
+            SELECTEDVALUE ( 'rpt_inventory kpi_inventory_health'[stock_status] ),
+            "Stockout", "#C0392B",
+            "Reorder now", "#E67E22",
+            "Excess", "#2E86C1",
+            "No recent demand", "#95A5A6",
+            "Healthy", "#27AE60"
+        )
+    MEASURE 'rpt_inventory kpi_inventory_health'[Fill Rate Color] = IF ( [Order Fill Rate] >= [Fill Rate Target], "#27AE60", "#C0392B" )
+    MEASURE 'rpt_inventory kpi_inventory_health'[On Time Color] = IF ( [On Time Rate] >= 0.9, "#27AE60", IF ( [On Time Rate] >= 0.7, "#E67E22", "#C0392B" ) )
+    MEASURE 'rpt_inventory kpi_inventory_health'[Top Risk Supplier] =
+        MAXX (
+            TOPN ( 1, ALL ( 'rpt_inventory kpi_supplier_scorecard' ), 'rpt_inventory kpi_supplier_scorecard'[exception_po_count], DESC, 'rpt_inventory kpi_supplier_scorecard'[supplier_name], ASC ),
+            'rpt_inventory kpi_supplier_scorecard'[supplier_name]
+        )
+    MEASURE 'rpt_inventory kpi_inventory_health'[Action Line] =
+        "Reorder " & ( [Reorder Now] + [Stockouts] ) & " SKU-locations (~" & FORMAT ( [Suggested Order Value], "$#,0" )
+            & "), and review " & [Top Risk Supplier] & " first."
+
+// Quick check: these should read about $24,426, 96.4%, 66 and 121 before you filter out the test DC.
+EVALUATE
+ROW (
+    "Inventory Value", [Inventory Value],
+    "Order Fill Rate", [Order Fill Rate],
+    "Exception POs", [Exception POs],
+    "POs", [POs],
+    "On Time Rate", [On Time Rate],
+    "At Risk Items", [At Risk Items],
+    "Headline", [Headline],
+    "Action Line", [Action Line]
+)
