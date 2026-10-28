@@ -1,5 +1,7 @@
 # Final Project Outcome: Supply Chain Analytics, End to End
 
+> **Independent portfolio demo built on synthetic data, not affiliated with UniFirst.**
+
 A portfolio project that builds a complete supply chain analytics stack, from the apps that create the transactions to a Power BI dashboard that turns them into actions. All data is synthetic.
 
 ## Presentation
@@ -45,4 +47,3 @@ Every number was reconciled from the source database through the warehouse to th
 - [UniFirst_CRM](https://github.com/dharanig977/UniFirst_CRM): CRM app
 - [UniFirst_DataWarehouse](https://github.com/dharanig977/UniFirst_DataWarehouse): ETL, warehouse SQL and console
 
-_Portfolio demo on synthetic data. Not a production system of any company._
