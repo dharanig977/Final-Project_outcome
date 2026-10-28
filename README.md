@@ -11,7 +11,7 @@ A portfolio project that builds a complete supply chain analytics stack, from th
 
 - **[Dashboard pages (PDF)](dashboard/Dashboard.pdf)**: the five report pages exported from Power BI.
 - **[Data model (PDF)](dashboard/Data_modelling.pdf)**: tables and relationships in the Power BI model.
-- **[Power BI file (.pbix)](powerbi/NetworkHealth_R1.pbix)**: download and open in Power BI Desktop. It holds the imported demo data; database passwords are not stored in the file.
+- **[Power BI file, final (.pbix)](powerbi/NetworkHealth_R1_Final.pbix)**: download and open in Power BI Desktop. An earlier draft is kept as [NetworkHealth_R1.pbix](powerbi/NetworkHealth_R1.pbix). It holds the imported demo data; database passwords are not stored in the file.
 - **[DAX measures](powerbi/DAX_measures.txt)**: all measures, ready to paste into DAX query view.
 - **Themes**: [green theme (used)](powerbi/network_health_theme_green.json) and [original theme](powerbi/network_health_theme.json).
 
